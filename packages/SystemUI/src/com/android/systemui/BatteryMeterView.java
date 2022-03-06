@@ -55,6 +55,10 @@ import com.android.settingslib.Utils;
 import com.android.settingslib.graph.CircleBatteryDrawable;
 import com.android.settingslib.graph.FullCircleBatteryDrawable;
 import com.android.settingslib.graph.ThemedBatteryDrawable;
+import com.android.settingslib.graph.RLandscapeBatteryDrawableStyleA;
+import com.android.settingslib.graph.LandscapeBatteryDrawableStyleA;
+import com.android.settingslib.graph.RLandscapeBatteryDrawableStyleB;
+import com.android.settingslib.graph.LandscapeBatteryDrawableStyleB;
 import com.android.settingslib.graph.RLandscapeBatteryDrawable;
 import com.android.settingslib.graph.LandscapeBatteryDrawable;
 import com.android.systemui.broadcast.BroadcastDispatcher;
@@ -103,12 +107,20 @@ public class BatteryMeterView extends LinearLayout implements
     private static final int BATTERY_STYLE_HIDDEN = 5;
     private static final int BATTERY_STYLE_RLANDSCAPE = 6;
     private static final int BATTERY_STYLE_LANDSCAPE = 7;
+    private static final int BATTERY_STYLE_RLANDSCAPE_STYLE_A = 8;
+    private static final int BATTERY_STYLE_LANDSCAPE_STYLE_A = 9;
+    private static final int BATTERY_STYLE_RLANDSCAPE_STYLE_B = 10;
+    private static final int BATTERY_STYLE_LANDSCAPE_STYLE_B = 11;
 
     private final CircleBatteryDrawable mCircleDrawable;
     private final FullCircleBatteryDrawable mFullCircleDrawable;
     private final ThemedBatteryDrawable mThemedDrawable;
     private final RLandscapeBatteryDrawable mRLandscapeDrawable;
     private final LandscapeBatteryDrawable mLandscapeDrawable;
+    private final RLandscapeBatteryDrawableStyleA mRLandscapeDrawableStyleA;
+    private final LandscapeBatteryDrawableStyleA mLandscapeDrawableStyleA;
+    private final RLandscapeBatteryDrawableStyleB mRLandscapeDrawableStyleB;
+    private final LandscapeBatteryDrawableStyleB mLandscapeDrawableStyleB;
     private final String mSlotBattery;
     private final ImageView mBatteryIconView;
     private final CurrentUserTracker mUserTracker;
@@ -167,6 +179,10 @@ public class BatteryMeterView extends LinearLayout implements
         mThemedDrawable = new ThemedBatteryDrawable(context, frameColor);
         mRLandscapeDrawable = new RLandscapeBatteryDrawable(context, frameColor);
         mLandscapeDrawable = new LandscapeBatteryDrawable(context, frameColor);
+        mRLandscapeDrawableStyleA = new RLandscapeBatteryDrawableStyleA(context, frameColor);
+        mLandscapeDrawableStyleA = new LandscapeBatteryDrawableStyleA(context, frameColor);
+        mRLandscapeDrawableStyleB = new RLandscapeBatteryDrawableStyleB(context, frameColor);
+        mLandscapeDrawableStyleB = new LandscapeBatteryDrawableStyleB(context, frameColor);
         mCircleDrawable = new CircleBatteryDrawable(context, frameColor);
         mFullCircleDrawable = new FullCircleBatteryDrawable(context, frameColor);
         atts.recycle();
@@ -376,6 +392,10 @@ public class BatteryMeterView extends LinearLayout implements
             mThemedDrawable.setBatteryLevel(mLevel);
             mRLandscapeDrawable.setBatteryLevel(mLevel);
             mLandscapeDrawable.setBatteryLevel(mLevel);
+            mRLandscapeDrawableStyleA.setBatteryLevel(mLevel);
+            mLandscapeDrawableStyleA.setBatteryLevel(mLevel);
+            mRLandscapeDrawableStyleB.setBatteryLevel(mLevel);
+            mLandscapeDrawableStyleB.setBatteryLevel(mLevel);
             mCircleDrawable.setBatteryLevel(mLevel);
             mFullCircleDrawable.setBatteryLevel(mLevel);
             updatePercentText();
@@ -385,6 +405,10 @@ public class BatteryMeterView extends LinearLayout implements
             mThemedDrawable.setCharging(mCharging);
             mRLandscapeDrawable.setCharging(mCharging);
             mLandscapeDrawable.setCharging(mCharging);
+            mRLandscapeDrawableStyleA.setCharging(mCharging);
+            mLandscapeDrawableStyleA.setCharging(mCharging);
+            mRLandscapeDrawableStyleB.setCharging(mCharging);
+            mLandscapeDrawableStyleB.setCharging(mCharging);
             mCircleDrawable.setCharging(mCharging);
             mFullCircleDrawable.setCharging(mCharging);
             updateShowPercent();
@@ -397,6 +421,10 @@ public class BatteryMeterView extends LinearLayout implements
         mThemedDrawable.setPowerSaveEnabled(isPowerSave);
         mRLandscapeDrawable.setPowerSaveEnabled(isPowerSave);
         mLandscapeDrawable.setPowerSaveEnabled(isPowerSave);
+        mRLandscapeDrawableStyleA.setPowerSaveEnabled(isPowerSave);
+        mLandscapeDrawableStyleA.setPowerSaveEnabled(isPowerSave);
+        mRLandscapeDrawableStyleB.setPowerSaveEnabled(isPowerSave);
+        mLandscapeDrawableStyleB.setPowerSaveEnabled(isPowerSave);
         mCircleDrawable.setPowerSaveEnabled(isPowerSave);
         mFullCircleDrawable.setPowerSaveEnabled(isPowerSave);
         updateShowPercent();
@@ -482,6 +510,10 @@ public class BatteryMeterView extends LinearLayout implements
         mThemedDrawable.setShowPercent(drawPercentInside);
         mRLandscapeDrawable.setShowPercent(drawPercentInside);
         mLandscapeDrawable.setShowPercent(drawPercentInside);
+        mRLandscapeDrawableStyleA.setShowPercent(drawPercentInside);
+        mLandscapeDrawableStyleA.setShowPercent(drawPercentInside);
+        mRLandscapeDrawableStyleB.setShowPercent(drawPercentInside);
+        mLandscapeDrawableStyleB.setShowPercent(drawPercentInside);
         mCircleDrawable.setShowPercent(drawPercentInside);
         mFullCircleDrawable.setShowPercent(drawPercentInside);
 
@@ -560,24 +592,35 @@ public class BatteryMeterView extends LinearLayout implements
      * Looks up the scale factor for status bar icons and scales the battery view by that amount.
      */
     private void scaleBatteryMeterViews() {
+        if (mBatteryIconView == null) {
+            return;
+        }
+
         Resources res = getContext().getResources();
         TypedValue typedValue = new TypedValue();
 
         res.getValue(R.dimen.status_bar_icon_scale_factor, typedValue, true);
         float iconScaleFactor = typedValue.getFloat();
 
-        int batteryHeight = mBatteryStyle == BATTERY_STYLE_CIRCLE || mBatteryStyle == BATTERY_STYLE_DOTTED_CIRCLE
-                || mBatteryStyle == BATTERY_STYLE_FULL_CIRCLE ?
-                res.getDimensionPixelSize(R.dimen.status_bar_battery_icon_circle_width) :
-                res.getDimensionPixelSize(R.dimen.status_bar_battery_icon_height);
-        batteryHeight = mBatteryStyle == BATTERY_STYLE_LANDSCAPE || mBatteryStyle == BATTERY_STYLE_RLANDSCAPE ?
-                res.getDimensionPixelSize(R.dimen.status_bar_battery_icon_height_landscape) : batteryHeight;
-        int batteryWidth = mBatteryStyle == BATTERY_STYLE_CIRCLE || mBatteryStyle == BATTERY_STYLE_DOTTED_CIRCLE
-                || mBatteryStyle == BATTERY_STYLE_FULL_CIRCLE ?
-                res.getDimensionPixelSize(R.dimen.status_bar_battery_icon_circle_width) :
-                res.getDimensionPixelSize(R.dimen.status_bar_battery_icon_width);
-        batteryWidth = mBatteryStyle == BATTERY_STYLE_LANDSCAPE || mBatteryStyle == BATTERY_STYLE_RLANDSCAPE ?
-                res.getDimensionPixelSize(R.dimen.status_bar_battery_icon_width_landscape) : batteryWidth;
+        int batteryWidth;
+        int batteryHeight;
+
+        if (mBatteryStyle == BATTERY_STYLE_RLANDSCAPE ||mBatteryStyle == BATTERY_STYLE_LANDSCAPE) {
+            batteryWidth = res.getDimensionPixelSize(R.dimen.status_bar_battery_icon_width_landscape_default);
+            batteryHeight = res.getDimensionPixelSize(R.dimen.status_bar_battery_icon_height_landscape_default);
+        } else if (mBatteryStyle == BATTERY_STYLE_RLANDSCAPE_STYLE_A || mBatteryStyle == BATTERY_STYLE_LANDSCAPE_STYLE_A
+                    || mBatteryStyle == BATTERY_STYLE_RLANDSCAPE_STYLE_B ||mBatteryStyle == BATTERY_STYLE_LANDSCAPE_STYLE_B) {
+            batteryWidth = res.getDimensionPixelSize(R.dimen.status_bar_battery_icon_width_landscape_style_a_b);
+            batteryHeight = res.getDimensionPixelSize(R.dimen.status_bar_battery_icon_height_landscape_style_a_b);
+        } else if (mBatteryStyle == BATTERY_STYLE_CIRCLE || mBatteryStyle == BATTERY_STYLE_DOTTED_CIRCLE
+                    || mBatteryStyle == BATTERY_STYLE_FULL_CIRCLE){
+            batteryHeight = res.getDimensionPixelSize(R.dimen.status_bar_battery_icon_circle_width);
+            batteryWidth = res.getDimensionPixelSize(R.dimen.status_bar_battery_icon_circle_width);
+        } else {
+            batteryWidth = res.getDimensionPixelSize(R.dimen.status_bar_battery_icon_width);
+            batteryHeight = res.getDimensionPixelSize(R.dimen.status_bar_battery_icon_height);
+
+        }
         int marginBottom = res.getDimensionPixelSize(R.dimen.battery_margin_bottom);
 
         LinearLayout.LayoutParams scaledLayoutParams = new LinearLayout.LayoutParams(
@@ -602,6 +645,18 @@ public class BatteryMeterView extends LinearLayout implements
             case BATTERY_STYLE_LANDSCAPE:
                 mBatteryIconView.setImageDrawable(mLandscapeDrawable);
                 break;
+           case BATTERY_STYLE_RLANDSCAPE_STYLE_A:
+            mBatteryIconView.setImageDrawable(mRLandscapeDrawableStyleA);
+            break;
+            case BATTERY_STYLE_LANDSCAPE_STYLE_A:
+            mBatteryIconView.setImageDrawable(mLandscapeDrawableStyleA);
+            break;
+            case BATTERY_STYLE_RLANDSCAPE_STYLE_B:
+            mBatteryIconView.setImageDrawable(mRLandscapeDrawableStyleB);
+            break;
+            case BATTERY_STYLE_LANDSCAPE_STYLE_B:
+            mBatteryIconView.setImageDrawable(mLandscapeDrawableStyleB);
+            break;     
             case BATTERY_STYLE_FULL_CIRCLE:
                 mBatteryIconView.setImageDrawable(mFullCircleDrawable);
                 break;
@@ -630,6 +685,10 @@ public class BatteryMeterView extends LinearLayout implements
         mThemedDrawable.setColors(foregroundColor, backgroundColor, singleToneColor);
         mRLandscapeDrawable.setColors(foregroundColor, backgroundColor, singleToneColor);
         mLandscapeDrawable.setColors(foregroundColor, backgroundColor, singleToneColor);
+        mRLandscapeDrawableStyleA.setColors(foregroundColor, backgroundColor, singleToneColor);
+        mLandscapeDrawableStyleA.setColors(foregroundColor, backgroundColor, singleToneColor);
+        mRLandscapeDrawableStyleB.setColors(foregroundColor, backgroundColor, singleToneColor);
+        mLandscapeDrawableStyleB.setColors(foregroundColor, backgroundColor, singleToneColor);
         mCircleDrawable.setColors(foregroundColor, backgroundColor, singleToneColor);
         mFullCircleDrawable.setColors(foregroundColor, backgroundColor, singleToneColor);
         mTextColor = singleToneColor;
